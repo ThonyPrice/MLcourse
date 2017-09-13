@@ -64,17 +64,7 @@ class MyMainWindow( QMainWindow ):
 
 def drawTree(tree):
     application = QApplication(sys.argv)
-    win = MyMainWindow(tree)  
+    win = MyMainWindow(tree)
 
     win.show()
     sys.exit(application.exec_())
-
-
-
-
-
-
-
-
-
-
