@@ -1,6 +1,7 @@
 import monkdata as m
 import dtree
 import drawtree_qt5 as draw
+import random
 
 monks = [m.monk1, m.monk2, m.monk3]
 
@@ -42,6 +43,7 @@ def infoGainOnSubsets(subsets):
         j = 0
         while j < len(m.attributes):
             result[j] += (l[i][j])
+            #print((l[i][j]))
             j+=1
         i+=1
     """
@@ -62,18 +64,51 @@ def getLeaves(dataSet, a1, a2):
             z = dtree.mostCommon(y)
             print("For " + str(k) + ":" + str(l) + ", " + "most common = " + str(z))
 
-getLeaves(m.monk1, 4, 0)
-draw.drawTree(dtree.buildTree(m.monk1, m.attributes, 2))
+def partition(data, fraction):
+    ldata = list(data)
+    random.shuffle(ldata)
+    breakPoint = int(len(ldata) * fraction)
+    return ldata[:breakPoint], ldata[breakPoint:]
 
-#subsets = getSubsets(m.monk1, 4)
-#infoGainOnSubsets(subsets)
-'''
-for att in att5
+def pruneTree(trainSet):
+    monktrain, monkval = partition(trainSet, 0.6)
+    tree = dtree.buildTree(monktrain, m.attributes)
+    treePermutations = dtree.allPruned(tree)
 
-    for att in att1
+    bestVal = 0
 
-x = dtree.select(m.monk1, m.attributes[4], 1)
-y = dtree.select(x, m.attributes[4], 3)
-z = dtree.mostCommon(y)
-print(z)
-'''
+    for treeP in treePermutations:
+        treePerformance = dtree.check(treeP, monkval)
+        if (treePerformance > bestVal):
+            bestTree = treeP
+            bestVal = treePerformance
+    return bestVal, bestTree, monkval
+
+def bestPruning():
+    bestTreeVal = 0
+    bestValData = ()
+    i = 0
+
+    while True:
+        cur_val, cur_tree, monkValData= pruneTree(m.monk1)
+        if cur_val > bestTreeVal:
+            bestTreeVal = cur_val
+            bestTree = cur_tree
+            bestValData = monkValData
+            i = 0
+
+        i+=1
+        if i == 20000:
+            break
+    print(dtree.check(bestTree, monkValData))
+    print(dtree.check(bestTree, m.monk1test))
+    draw.drawTree(bestTree)
+
+#subs = getSubsets(m.monk1,4)
+#infoGainOnSubsets(subs)
+#getLeaves(m.monk1, 4, 0)
+#tree = dtree.buildTree(m.monk2, m.attributes)
+#print(dtree.check(tree, m.monk2))
+
+#pruneTree(m.monk1,m.monk1test)
+bestPruning()
