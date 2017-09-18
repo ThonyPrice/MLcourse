@@ -2,6 +2,8 @@ import monkdata as m
 import dtree
 import drawtree_qt5 as draw
 import random
+import matplotlib.pyplot as plt
+import statistics
 
 monks = [m.monk1, m.monk2, m.monk3]
 
@@ -70,12 +72,13 @@ def partition(data, fraction):
     breakPoint = int(len(ldata) * fraction)
     return ldata[:breakPoint], ldata[breakPoint:]
 
-def pruneTree(trainSet):
-    monktrain, monkval = partition(trainSet, 0.6)
-    tree = dtree.buildTree(monktrain, m.attributes)
-    treePermutations = dtree.allPruned(tree)
+def pruneTree(trainSet, fraction):
+    monktrain, monkval = partition(trainSet, fraction)
+    bestTree = dtree.buildTree(monktrain, m.attributes)
+    treePermutations = dtree.allPruned(bestTree)
 
-    bestVal = 0
+
+    bestVal = dtree.check(bestTree, monkval)
 
     for treeP in treePermutations:
         treePerformance = dtree.check(treeP, monkval)
@@ -84,31 +87,61 @@ def pruneTree(trainSet):
             bestVal = treePerformance
     return bestVal, bestTree, monkval
 
-def bestPruning():
+def bestPruning(data, fraction, iterations, dataTest):
     bestTreeVal = 0
     bestValData = ()
+    allData = [0]*iterations
     i = 0
 
     while True:
-        cur_val, cur_tree, monkValData= pruneTree(m.monk1)
+        cur_val, cur_tree, monkValData= pruneTree(data, fraction)
+        allData[i] = (dtree.check(cur_tree,dataTest))
         if cur_val > bestTreeVal:
             bestTreeVal = cur_val
             bestTree = cur_tree
             bestValData = monkValData
-            i = 0
+            #i = 0
 
         i+=1
-        if i == 20000:
+        if i == iterations:
             break
-    print(dtree.check(bestTree, monkValData))
-    print(dtree.check(bestTree, m.monk1test))
-    draw.drawTree(bestTree)
+    #print(dtree.check(bestTree, monkValData))
+    #print(dtree.check(bestTree, m.monk1test))
+    #print("Mean: " + str(statistics.mean(allData)))
+    #print("Standard Deviation: " + str(statistics.stdev(allData)))
+    #print(allData)
+    return statistics.mean(allData), statistics.stdev(allData)
+    #draw.drawTree(bestTree)
 
 #subs = getSubsets(m.monk1,4)
 #infoGainOnSubsets(subs)
 #getLeaves(m.monk1, 4, 0)
-#tree = dtree.buildTree(m.monk2, m.attributes)
+#tree = dtree.buildTree(m.monk1, m.attributes, 2)
+#draw.drawTree(tree)
 #print(dtree.check(tree, m.monk2))
-
+#tree = dtree.buildTree(m.monk3, m.attributes)
+#print(dtree.check(tree, m.monk3test))
 #pruneTree(m.monk1,m.monk1test)
-bestPruning()
+fractions = [0.3,0.4,0.5,0.6,0.7,0.8]
+iterations = 10000
+xAxis = []
+errorAxis = []
+
+for frac in fractions:
+    mean, stdev = bestPruning(m.monk3, frac, iterations, m.monk3test)
+    xAxis.append(mean)
+    errorAxis.append(stdev)
+
+#print(xAxis)
+#print(errorAxis)
+
+lb = "Mean of optimal pruning from " + str(iterations) + " splits with one standard deviation"
+plt.errorbar(fractions, xAxis, errorAxis, lineStyle='-', marker='*', label=lb, mew=5, capsize= 5, capthick=1)
+plt.ylabel('Accuracy towards testingdata', fontsize=20)
+plt.xlabel('Fraction of training data split', fontsize=20)
+plt.legend(loc='lower right',prop={'size': 20})
+plt.grid(True)
+plt.title("Monk3", fontsize=30)
+plt.axis([0.2,0.9,0.6,1])
+
+plt.show()
