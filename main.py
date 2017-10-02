@@ -64,7 +64,17 @@ def polynomialKernel(vectorX, vectorY):
     scalar = 0.0
     for i in range(0,len(vectorX)):
         scalar += vectorX[i]*vectorY[i]
-    return (scalar+1.0)**2
+    return (scalar+1.0)**3
+
+
+def radialKernel(vectorX, vectorY):
+    tempVec = (vectorX[0]-vectorY[0], vectorX[1]-vectorY[1])
+    scalar = 0.0
+    parameter=2
+    for i in range(0,len(tempVec)):
+        scalar += tempVec[i]*tempVec[i]
+    return math.exp(-scalar/(2*(parameter**2)))
+
 
 
 def pMatrixCreator(dataSet):
@@ -88,19 +98,21 @@ def gMatrixCreator(n):
         gMatrix[i][i] = -1.0
     return gMatrix
 
+
+
 def generateData():
     random.seed(100)
     classA = [(random.normalvariate(-1.5 ,1),
         random.normalvariate(0.5 ,1),
         1.0)
-        for i in range(5)] + \
+        for i in range(10)] + \
         [(random.normalvariate(1.5 ,1),
         random.normalvariate(0.5 ,1),
         1.0)
-        for i in range(5)]
+        for i in range(10)]
     classB = [(random.normalvariate(0.0 ,0.5),
         random.normalvariate(-0.5 ,0.5),
-        -1.0) for i in range(10)]
+        -1.0) for i in range(20)]
     data = classA + classB
     random.shuffle(data)
 
