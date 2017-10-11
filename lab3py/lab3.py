@@ -111,43 +111,31 @@ def classifyBayes(X, prior, mu, sigma):
     Npts = X.shape[0]
     Nclasses,Ndims = np.shape(mu)
     logProb = np.zeros((Nclasses, Npts))
-    #print(Npts)
     print("Shape of mu", np.shape(mu))
     print("Shape of sigma", np.shape(sigma))
-    print("Shape of X", np.shape(sigma))
-    print(prior)
-    # print(sigma)
+    print("Shape of X", np.shape(X))
+    print("Shape of logProb", np.shape(logProb))
     # TODO: fill in the code to compute the log posterior logProb!
     # ==========================
 
     for class_x in range(Nclasses):
-        print(np.shape(mu[class_x].reshape(2,1)))
-        logProb[class_x] = (-0.5) *                     \
-        np.log(np.linalg.det(sigma[class_x])) -     \
-        0.5 * X-mu[class_x].reshape(2,200) #*                       \
-            # (1./sigma[class_x]) *                       \
-            # np.transpose(X - mu[class_x]) +             \
-            # np.log(prior[class_x])
-        # for idx in range(np.size(mu)):
-
-# -- Back Up CODE
-    # for row_idx in range(Npts):
-    #     for class_x in range(Nclasses):
-    #         hej = (-0.5) *                \
-    #         np.log(np.linalg.det(sigma[class_x])) -       \
-    #             0.5 * X[row_idx]-mu[class_x] *              \
-    #             (1./sigma[class_x]) *                       \
-    #             np.transpose(X[row_idx]-mu[class_x]) +      \
-    #             np.log(prior[class_x])
-    #     for idx in range(np.size(mu)):
-# -- EOF Back Up CODE
+        logProb[class_x] = (-0.5) * np.log(np.linalg.det(sigma[class_x]))
+        # middle_a = np.subtract(X, mu[class_x])
+        x = np.array(
+            [0.5 * np.subtract(x, mu[class_x]).dot(         \
+                np.linalg.pinv(sigma[class_x]).dot(         \
+                np.transpose(np.subtract(x, mu[class_x])))) \
+                for x in X
+            ]
+        )
+        logProb[class_x] = logProb[class_x] - x + np.log(prior[class_x])
 
     # ==========================
     pp.pprint(logProb)
-    print("LJNCDJKC")
+
     # one possible way of finding max a-posteriori once
     # you have computed the log posterior
-    h = np.argmax(np.transpose(logProb), axis=0)
+    h = np.argmax(logProb, axis=0)
     pp.pprint(h)
     return h
 
