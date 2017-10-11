@@ -1,2 +1,4 @@
 # ML_2
-Maskininlärning Lab 2
+Machine Learning Lab 2
+
+Functions for calculating and plotting support vector machines.
