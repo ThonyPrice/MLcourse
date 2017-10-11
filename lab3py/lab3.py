@@ -21,6 +21,7 @@ from scipy import misc
 from imp import reload
 from labfuns import *
 import random
+import math
 import pprint as pp
 
 # ## Bayes classifier functions to implement
@@ -41,10 +42,14 @@ def computePrior(labels, W=None):
     Nclasses = np.size(classes)
 
     prior = np.zeros((Nclasses,1))
-
     # TODO: compute the values of prior for each class!
     # ==========================
-
+    for class_x in classes:
+        for idx in range(np.size(labels)):
+            if class_x == labels[idx]:
+                prior[class_x] += 1.
+        prior[class_x] = prior[class_x] / np.size(labels)
+    # pp.pprint(prior)
     # ==========================
 
     return prior
@@ -106,15 +111,44 @@ def classifyBayes(X, prior, mu, sigma):
     Npts = X.shape[0]
     Nclasses,Ndims = np.shape(mu)
     logProb = np.zeros((Nclasses, Npts))
-
+    #print(Npts)
+    print("Shape of mu", np.shape(mu))
+    print("Shape of sigma", np.shape(sigma))
+    print("Shape of X", np.shape(sigma))
+    print(prior)
+    # print(sigma)
     # TODO: fill in the code to compute the log posterior logProb!
     # ==========================
 
-    # ==========================
+    for class_x in range(Nclasses):
+        print(np.shape(mu[class_x].reshape(2,1)))
+        logProb[class_x] = (-0.5) *                     \
+        np.log(np.linalg.det(sigma[class_x])) -     \
+        0.5 * X-mu[class_x].reshape(2,200) #*                       \
+            # (1./sigma[class_x]) *                       \
+            # np.transpose(X - mu[class_x]) +             \
+            # np.log(prior[class_x])
+        # for idx in range(np.size(mu)):
 
+# -- Back Up CODE
+    # for row_idx in range(Npts):
+    #     for class_x in range(Nclasses):
+    #         hej = (-0.5) *                \
+    #         np.log(np.linalg.det(sigma[class_x])) -       \
+    #             0.5 * X[row_idx]-mu[class_x] *              \
+    #             (1./sigma[class_x]) *                       \
+    #             np.transpose(X[row_idx]-mu[class_x]) +      \
+    #             np.log(prior[class_x])
+    #     for idx in range(np.size(mu)):
+# -- EOF Back Up CODE
+
+    # ==========================
+    pp.pprint(logProb)
+    print("LJNCDJKC")
     # one possible way of finding max a-posteriori once
     # you have computed the log posterior
-    h = np.argmax(logProb,axis=0)
+    h = np.argmax(np.transpose(logProb), axis=0)
+    pp.pprint(h)
     return h
 
 
@@ -142,9 +176,12 @@ class BayesClassifier(object):
 # Call `genBlobs` and `plotGaussian` to verify your estimates.
 
 
+# lab = np.array([1,1,1,1,1,0,0,0,0,0])
 X, labels = genBlobs(centers=5)
 mu, sigma = mlParams(X,labels)
-plotGaussian(X,labels,mu,sigma)
+# plotGaussian(X,labels,mu,sigma)
+prior = computePrior(labels)
+classifyBayes(X, prior, mu, sigma)
 
 
 # Call the `testClassifier` and `plotBoundary` functions for this part.
