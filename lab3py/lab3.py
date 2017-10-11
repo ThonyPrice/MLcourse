@@ -71,6 +71,7 @@ def mlParams(X, labels, W=None):
 
     # TODO: fill in the code to compute mu and sigma!
     # ==========================
+
     for class_x in classes:
         Nk = 0.
         for idx in range(np.size(labels)):
@@ -78,7 +79,19 @@ def mlParams(X, labels, W=None):
                 mu[class_x] = np.add(mu[class_x], X[idx])
                 Nk += 1.
         mu[class_x] = np.divide(mu[class_x], [Nk]*Ndims)
-    pp.pprint(mu)
+    # pp.pprint(mu)
+
+    for class_x in classes:
+        Nk = 0.
+        for idx in range(np.size(labels)):
+            if class_x == labels[idx]:
+                A = np.diag(np.transpose(X[idx]-mu[class_x]))
+                B = np.diag(X[idx]-mu[class_x])
+                sigma[class_x] = np.add(np.dot(A, B), sigma[class_x])
+                Nk += 1.
+        sigma[class_x] = np.divide(sigma[class_x], [Nk]*Ndims)
+    # pp.pprint(sigma)
+
     # ==========================
 
     return mu, sigma
