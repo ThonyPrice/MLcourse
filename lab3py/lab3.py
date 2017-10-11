@@ -64,10 +64,7 @@ def mlParams(X, labels, W=None):
     Npts,Ndims = np.shape(X)        # Npts - Rows in X, Ndims - Cols in X
     classes = np.unique(labels)     # Get unique examples
     Nclasses = np.size(classes)     # Num of unique classes
-    print("Classes", classes)
 
-    print(type(X))
-    print(type(labels))
     if W is None:
         W = np.ones((Npts,1))/float(Npts)
 
@@ -78,23 +75,23 @@ def mlParams(X, labels, W=None):
     # ==========================
 
     for class_x in classes:
-        Nk = 0.
+        Wi = 0.
         for idx in range(np.size(labels)):
             if class_x == labels[idx]:
-                mu[class_x] = np.add(mu[class_x], X[idx])
-                Nk += 1.
-        mu[class_x] = np.divide(mu[class_x], [Nk]*Ndims)
+                mu[class_x] = np.add(mu[class_x], X[idx]*W[idx])
+                Wi += W[idx]
+        mu[class_x] = np.divide(mu[class_x], [Wi])
     # pp.pprint(mu)
 
     for class_x in classes:
-        Nk = 0.
+        Wi = 0.
         for idx in range(np.size(labels)):
             if class_x == labels[idx]:
                 A = np.diag(np.transpose(X[idx]-mu[class_x]))
                 B = np.diag(X[idx]-mu[class_x])
-                sigma[class_x] = np.add(np.dot(A, B), sigma[class_x])
-                Nk += 1.
-        sigma[class_x] = np.divide(sigma[class_x], [Nk]*Ndims)
+                sigma[class_x] = np.add(np.dot(A, B) * W[idx], sigma[class_x]) 
+                Wi += W[idx]
+        sigma[class_x] = np.divide(sigma[class_x], [Wi])
     # pp.pprint(sigma)
 
     # ==========================
@@ -111,10 +108,6 @@ def classifyBayes(X, prior, mu, sigma):
     Npts = X.shape[0]
     Nclasses,Ndims = np.shape(mu)
     logProb = np.zeros((Nclasses, Npts))
-    print("Shape of mu", np.shape(mu))
-    print("Shape of sigma", np.shape(sigma))
-    print("Shape of X", np.shape(X))
-    print("Shape of logProb", np.shape(logProb))
     # TODO: fill in the code to compute the log posterior logProb!
     # ==========================
 
@@ -131,12 +124,12 @@ def classifyBayes(X, prior, mu, sigma):
         logProb[class_x] = logProb[class_x] - x + np.log(prior[class_x])
 
     # ==========================
-    pp.pprint(logProb)
+    # pp.pprint(logProb)
 
     # one possible way of finding max a-posteriori once
     # you have computed the log posterior
     h = np.argmax(logProb, axis=0)
-    pp.pprint(h)
+    # pp.pprint(h)
     return h
 
 
@@ -175,15 +168,15 @@ classifyBayes(X, prior, mu, sigma)
 # Call the `testClassifier` and `plotBoundary` functions for this part.
 
 
-#testClassifier(BayesClassifier(), dataset='iris', split=0.7)
+testClassifier(BayesClassifier(), dataset='iris', split=0.7)
 
 
 
-#testClassifier(BayesClassifier(), dataset='vowel', split=0.7)
+# testClassifier(BayesClassifier(), dataset='vowel', split=0.7)
 
 
 
-#plotBoundary(BayesClassifier(), dataset='iris',split=0.7)
+plotBoundary(BayesClassifier(), dataset='iris',split=0.7)
 
 
 # ## Boosting functions to implement
