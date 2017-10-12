@@ -46,7 +46,7 @@ def computePrior(labels, W=None):
     # ==========================
     for jdx, class_x in enumerate(classes):
         idx = np.where(labels == class_x)[0]
-        prior[class_x] = np.sum(W[idx]) / np.sum(W)
+        prior[jdx] = np.sum(W[idx]) / np.sum(W)
     # pp.pprint(prior)
     # ==========================
     return prior
@@ -219,7 +219,10 @@ def classifyBoost(X, classifiers, alphas, Nclasses):
         # TODO: implement classificiation when we have trained several classifiers!
         # here we can do it by filling in the votes vector with weighted votes
         # ==========================
-
+        for class_x in range(Nclasses):
+            for jdx in range(Ncomps):
+                delta_vote = classifiers[jdx].classify(X) == class_x # Idx is a vector with the indices in labels where class_x == labels
+                votes[:,class_x] += delta_vote * alphas[jdx]
         # ==========================
 
         # one way to compute yPred after accumulating the votes
