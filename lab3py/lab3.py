@@ -46,7 +46,7 @@ def computePrior(labels, W=None):
     # ==========================
     for jdx, class_x in enumerate(classes):
         idx = np.where(labels == class_x)[0]
-        prior1[class_x] = np.sum(W[idx]) / np.sum(W)
+        prior[class_x] = np.sum(W[idx]) / np.sum(W)
     # pp.pprint(prior)
     # ==========================
     return prior
@@ -99,22 +99,13 @@ def classifyBayes(X, prior, mu, sigma):
     logProb = np.zeros((Nclasses, Npts))
     # TODO: fill in the code to compute the log posterior logProb!
     # ==========================
-
     for class_x in range(Nclasses):
-        logProb[class_x] = (-0.5) * np.log(np.linalg.det(sigma[class_x]))
-        # middle_a = np.subtract(X, mu[class_x])
-        x = np.array(
-            [0.5 * np.subtract(x, mu[class_x]).dot(         \
-                np.linalg.pinv(sigma[class_x]).dot(         \
-                np.transpose(np.subtract(x, mu[class_x])))) \
-                for x in X
-            ]
-        )
-        logProb[class_x] = logProb[class_x] - x + np.log(prior[class_x])
-
+        logProb[class_x] = \
+            -0.5 * np.log(np.linalg.det(sigma[class_x])) -                  \
+            np.diag(np.linalg.pinv(sigma[class_x])).reshape(1,-1).dot(      \
+            -0.5 * np.transpose((X - mu[class_x]) * (X - mu[class_x]))) +   \
+            np.log(prior[class_x])
     # ==========================
-    # pp.pprint(logProb)
-
     # one possible way of finding max a-posteriori once
     # you have computed the log posterior
     h = np.argmax(logProb, axis=0)
