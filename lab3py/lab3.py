@@ -69,18 +69,33 @@ def mlParams(X, labels, W=None):
         W = np.ones((Npts,1))/float(Npts)
 
     mu = np.zeros((Nclasses,Ndims))
+    mu1 = np.zeros((Nclasses,Ndims))
     sigma = np.zeros((Nclasses,Ndims,Ndims))
 
     # TODO: fill in the code to compute mu and sigma!
     # ==========================
 
-    for class_x in classes:
-        Wi = 0.
-        for idx in range(np.size(labels)):
-            if class_x == labels[idx]:
-                mu[class_x] = np.add(mu[class_x], X[idx]*W[idx])
-                Wi += W[idx]
-        mu[class_x] = np.divide(mu[class_x], [Wi])
+    # for class_x in classes:
+    #     Wi = 0.
+    #     for idx in range(np.size(labels)):
+    #         if class_x == labels[idx]:
+    #             mu[class_x] = np.add(mu[class_x], X[idx]*W[idx])
+    #             Wi += W[idx]
+    #     mu[class_x] = np.divide(mu[class_x], [Wi])
+    # pp.pprint(mu)
+
+    for jdx, class_x in enumerate(classes):
+        idx = np.where(labels == class_x)[0] # Idx is a vector with the indices in labels where class_x == labels
+        xlc = X[idx,:] # Extract all rows of the indices
+        mu1[jdx] = np.divide(xlc.sum(0), np.shape(xlc)[0]) # Sum all rows together (axis 0) and divide by num of rows
+    pp.pprint(mu1)
+    # for class_x in classes:
+    #     Wi = 0.
+    #     for idx in range(np.size(labels)):
+    #         if class_x == labels[idx]:
+    #             mu[class_x] = np.add(mu[class_x], X[idx]*W[idx])
+    #             Wi += W[idx]
+    #     mu[class_x] = np.divide(mu[class_x], [Wi])
     # pp.pprint(mu)
 
     for class_x in classes:
@@ -160,7 +175,7 @@ class BayesClassifier(object):
 # lab = np.array([1,1,1,1,1,0,0,0,0,0])
 X, labels = genBlobs(centers=5)
 mu, sigma = mlParams(X,labels)
-# plotGaussian(X,labels,mu,sigma)
+plotGaussian(X,labels,mu,sigma)
 prior = computePrior(labels)
 classifyBayes(X, prior, mu, sigma)
 base_classifier = BayesClassifier()
