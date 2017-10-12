@@ -191,8 +191,12 @@ def trainBoost(base_classifier, X, labels, T=10):
 
         # TODO: Fill in the rest, construct the alphas etc.
         # ==========================
-
-        # alphas.append(alpha) # you will need to append the new alpha
+        epsilon = np.sum(np.transpose(wCur) * (1. - np.equal(vote, labels)))
+        alpha = 0.5 * ((np.log(1.-epsilon)) - np.log(epsilon))
+        w_true = (np.transpose(wCur) * np.equal(vote, labels)) * np.exp(-alpha)
+        w_false = (np.transpose(wCur) * (1 - np.equal(vote, labels))) * np.exp(alpha)
+        wCur = np.transpose((w_true + w_false) / np.sum(w_true + w_false))
+        alphas.append(alpha) # you will need to append the new alpha
         # ==========================
 
     return classifiers, alphas
