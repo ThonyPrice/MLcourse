@@ -138,13 +138,13 @@ class BayesClassifier(object):
 
 
 # lab = np.array([1,1,1,1,1,0,0,0,0,0])
-X, labels = genBlobs(centers=5)
-mu, sigma = mlParams(X,labels)
+# X, labels = genBlobs(centers=5)
+# mu, sigma = mlParams(X,labels)
 # plotGaussian(X,labels,mu,sigma)
-prior = computePrior(labels)
-classifyBayes(X, prior, mu, sigma)
-base_classifier = BayesClassifier()
-new_classifier = base_classifier.trainClassifier(X, labels)
+# prior = computePrior(labels)
+# classifyBayes(X, prior, mu, sigma)
+# base_classifier = BayesClassifier()
+# new_classifier = base_classifier.trainClassifier(X, labels)
 
 
 # Call the `testClassifier` and `plotBoundary` functions for this part.
@@ -192,6 +192,10 @@ def trainBoost(base_classifier, X, labels, T=10):
         # TODO: Fill in the rest, construct the alphas etc.
         # ==========================
         epsilon = np.sum(np.transpose(wCur) * (1. - np.equal(vote, labels)))
+        if epsilon > 0.5:
+            break
+        if epsilon == 0.0:
+            epsilon = np.amin(wCur) / 10000
         alpha = 0.5 * ((np.log(1.-epsilon)) - np.log(epsilon))
         w_true = (np.transpose(wCur) * np.equal(vote, labels)) * np.exp(-alpha)
         w_false = (np.transpose(wCur) * (1 - np.equal(vote, labels))) * np.exp(alpha)
@@ -220,7 +224,7 @@ def classifyBoost(X, classifiers, alphas, Nclasses):
         # here we can do it by filling in the votes vector with weighted votes
         # ==========================
         for class_x in range(Nclasses):
-            for jdx in range(Ncomps):
+            for jdx in range(min(Ncomps, len(alphas))):
                 delta_vote = classifiers[jdx].classify(X) == class_x # Idx is a vector with the indices in labels where class_x == labels
                 votes[:,class_x] += delta_vote * alphas[jdx]
         # ==========================
