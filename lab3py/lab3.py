@@ -69,12 +69,10 @@ def mlParams(X, labels, W=None):
         W = np.ones((Npts,1))/float(Npts)
 
     mu = np.zeros((Nclasses,Ndims))
-    mu1 = np.zeros((Nclasses,Ndims))
     sigma = np.zeros((Nclasses,Ndims,Ndims))
 
     # TODO: fill in the code to compute mu and sigma!
     # ==========================
-
     for jdx, class_x in enumerate(classes):
         idx = np.where(labels == class_x)[0] # Idx is a vector with the indices in labels where class_x == labels
         xlc = X[idx,:] # Extract all rows of the indices
@@ -82,19 +80,14 @@ def mlParams(X, labels, W=None):
         mu[jdx] = np.divide( (xlc * wlc).sum(0), wlc.sum(0)) # Sum all rows together (axis 0) and divide by num of rows
     # pp.pprint(mu)
 
-    for class_x in classes:
-        Wi = 0.
-        for idx in range(np.size(labels)):
-            if class_x == labels[idx]:
-                A = np.diag(np.transpose(X[idx]-mu[class_x]))
-                B = np.diag(X[idx]-mu[class_x])
-                sigma[class_x] = np.add(np.dot(A, B) * W[idx], sigma[class_x])
-                Wi += W[idx]
-        sigma[class_x] = np.divide(sigma[class_x], [Wi])
+    for jdx, class_x in enumerate(classes):
+        idx = np.where(labels == class_x)
+        xlc, wlc = X[idx,:], W[idx,:]
+        product = np.transpose(xlc - mu[class_x]) * (xlc - mu[class_x]) * wlc
+        sigma[jdx] = np.diag(np.diag(product.sum(1))) / np.sum(wlc)
     # pp.pprint(sigma)
-
     # ==========================
-
+    
     return mu, sigma
 
 # in:      X - N x d matrix of M data points
