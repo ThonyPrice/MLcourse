@@ -102,8 +102,8 @@ def classifyBayes(X, prior, mu, sigma):
     for class_x in range(Nclasses):
         logProb[class_x] = \
             -0.5 * np.log(np.linalg.det(sigma[class_x])) -                  \
-            np.diag(np.linalg.pinv(sigma[class_x])).reshape(1,-1).dot(      \
-            -0.5 * np.transpose((X - mu[class_x]) * (X - mu[class_x]))) +   \
+            0.5 * np.diag(np.linalg.pinv(sigma[class_x])).reshape(1,-1).dot(      \
+            np.transpose((X - mu[class_x]) * (X - mu[class_x]))) +   \
             np.log(prior[class_x])
     # ==========================
     # one possible way of finding max a-posteriori once
