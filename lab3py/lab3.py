@@ -44,14 +44,11 @@ def computePrior(labels, W=None):
     prior = np.zeros((Nclasses,1))
     # TODO: compute the values of prior for each class!
     # ==========================
-    for class_x in classes:
-        for idx in range(np.size(labels)):
-            if class_x == labels[idx]:
-                prior[class_x] += 1. * W[idx]
-        prior[class_x] = prior[class_x] / np.sum(W)
+    for jdx, class_x in enumerate(classes):
+        idx = np.where(labels == class_x)[0]
+        prior1[class_x] = np.sum(W[idx]) / np.sum(W)
     # pp.pprint(prior)
     # ==========================
-
     return prior
 
 # NOTE: you do not need to handle the W argument for this part!
@@ -87,7 +84,7 @@ def mlParams(X, labels, W=None):
         sigma[jdx] = np.diag(np.diag(product.sum(1))) / np.sum(wlc)
     # pp.pprint(sigma)
     # ==========================
-    
+
     return mu, sigma
 
 # in:      X - N x d matrix of M data points
