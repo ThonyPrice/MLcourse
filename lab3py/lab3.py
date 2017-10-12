@@ -140,7 +140,7 @@ class BayesClassifier(object):
 # lab = np.array([1,1,1,1,1,0,0,0,0,0])
 X, labels = genBlobs(centers=5)
 mu, sigma = mlParams(X,labels)
-plotGaussian(X,labels,mu,sigma)
+# plotGaussian(X,labels,mu,sigma)
 prior = computePrior(labels)
 classifyBayes(X, prior, mu, sigma)
 base_classifier = BayesClassifier()
@@ -188,7 +188,6 @@ def trainBoost(base_classifier, X, labels, T=10):
 
         # do classification for each point
         vote = classifiers[-1].classify(X)
-        pp.pprint("VOTES: ", vote)
 
         # TODO: Fill in the rest, construct the alphas etc.
         # ==========================
@@ -249,7 +248,7 @@ class BoostClassifier(object):
 # Call the `testClassifier` and `plotBoundary` functions for this part.
 
 
-#testClassifier(BoostClassifier(BayesClassifier(), T=10), dataset='iris',split=0.7)
+testClassifier(BoostClassifier(BayesClassifier(), T=10), dataset='iris',split=0.7)
 
 
 
