@@ -47,8 +47,8 @@ def computePrior(labels, W=None):
     for class_x in classes:
         for idx in range(np.size(labels)):
             if class_x == labels[idx]:
-                prior[class_x] += 1.
-        prior[class_x] = prior[class_x] / np.size(labels)
+                prior[class_x] += 1. * W[idx]
+        prior[class_x] = prior[class_x] / np.sum(W)
     # pp.pprint(prior)
     # ==========================
 
@@ -89,7 +89,7 @@ def mlParams(X, labels, W=None):
             if class_x == labels[idx]:
                 A = np.diag(np.transpose(X[idx]-mu[class_x]))
                 B = np.diag(X[idx]-mu[class_x])
-                sigma[class_x] = np.add(np.dot(A, B) * W[idx], sigma[class_x]) 
+                sigma[class_x] = np.add(np.dot(A, B) * W[idx], sigma[class_x])
                 Wi += W[idx]
         sigma[class_x] = np.divide(sigma[class_x], [Wi])
     # pp.pprint(sigma)
@@ -163,12 +163,14 @@ mu, sigma = mlParams(X,labels)
 # plotGaussian(X,labels,mu,sigma)
 prior = computePrior(labels)
 classifyBayes(X, prior, mu, sigma)
+base_classifier = BayesClassifier()
+new_classifier = base_classifier.trainClassifier(X, labels)
 
 
 # Call the `testClassifier` and `plotBoundary` functions for this part.
 
 
-testClassifier(BayesClassifier(), dataset='iris', split=0.7)
+# testClassifier(BayesClassifier(), dataset='iris', split=0.7)
 
 
 
@@ -176,7 +178,7 @@ testClassifier(BayesClassifier(), dataset='iris', split=0.7)
 
 
 
-plotBoundary(BayesClassifier(), dataset='iris',split=0.7)
+# plotBoundary(BayesClassifier(), dataset='iris',split=0.7)
 
 
 # ## Boosting functions to implement
@@ -206,6 +208,7 @@ def trainBoost(base_classifier, X, labels, T=10):
 
         # do classification for each point
         vote = classifiers[-1].classify(X)
+        pp.pprint("VOTES: ", vote)
 
         # TODO: Fill in the rest, construct the alphas etc.
         # ==========================
