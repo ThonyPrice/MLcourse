@@ -75,27 +75,11 @@ def mlParams(X, labels, W=None):
     # TODO: fill in the code to compute mu and sigma!
     # ==========================
 
-    # for class_x in classes:
-    #     Wi = 0.
-    #     for idx in range(np.size(labels)):
-    #         if class_x == labels[idx]:
-    #             mu[class_x] = np.add(mu[class_x], X[idx]*W[idx])
-    #             Wi += W[idx]
-    #     mu[class_x] = np.divide(mu[class_x], [Wi])
-    # pp.pprint(mu)
-
     for jdx, class_x in enumerate(classes):
         idx = np.where(labels == class_x)[0] # Idx is a vector with the indices in labels where class_x == labels
         xlc = X[idx,:] # Extract all rows of the indices
-        mu1[jdx] = np.divide(xlc.sum(0), np.shape(xlc)[0]) # Sum all rows together (axis 0) and divide by num of rows
-    pp.pprint(mu1)
-    # for class_x in classes:
-    #     Wi = 0.
-    #     for idx in range(np.size(labels)):
-    #         if class_x == labels[idx]:
-    #             mu[class_x] = np.add(mu[class_x], X[idx]*W[idx])
-    #             Wi += W[idx]
-    #     mu[class_x] = np.divide(mu[class_x], [Wi])
+        wlc = W[idx,:] # Extract all wights of the indices
+        mu[jdx] = np.divide( (xlc * wlc).sum(0), wlc.sum(0)) # Sum all rows together (axis 0) and divide by num of rows
     # pp.pprint(mu)
 
     for class_x in classes:
