@@ -44,14 +44,11 @@ def computePrior(labels, W=None):
     prior = np.zeros((Nclasses,1))
     # TODO: compute the values of prior for each class!
     # ==========================
-    for class_x in classes:
-        for idx in range(np.size(labels)):
-            if class_x == labels[idx]:
-                prior[class_x] += 1. * W[idx]
-        prior[class_x] = prior[class_x] / np.sum(W)
+    for jdx, class_x in enumerate(classes):
+        idx = np.where(labels == class_x)[0]
+        prior[jdx] = np.sum(W[idx]) / np.sum(W)
     # pp.pprint(prior)
     # ==========================
-
     return prior
 
 # NOTE: you do not need to handle the W argument for this part!
@@ -73,27 +70,19 @@ def mlParams(X, labels, W=None):
 
     # TODO: fill in the code to compute mu and sigma!
     # ==========================
-
-    for class_x in classes:
-        Wi = 0.
-        for idx in range(np.size(labels)):
-            if class_x == labels[idx]:
-                mu[class_x] = np.add(mu[class_x], X[idx]*W[idx])
-                Wi += W[idx]
-        mu[class_x] = np.divide(mu[class_x], [Wi])
+    for jdx, class_x in enumerate(classes):
+        idx = np.where(labels == class_x)[0] # Idx is a vector with the indices in labels where class_x == labels
+        xlc = X[idx,:] # Extract all rows of the indices
+        wlc = W[idx,:] # Extract all wights of the indices
+        mu[jdx] = np.divide( (xlc * wlc).sum(0), wlc.sum(0)) # Sum all rows together (axis 0) and divide by num of rows
     # pp.pprint(mu)
 
-    for class_x in classes:
-        Wi = 0.
-        for idx in range(np.size(labels)):
-            if class_x == labels[idx]:
-                A = np.diag(np.transpose(X[idx]-mu[class_x]))
-                B = np.diag(X[idx]-mu[class_x])
-                sigma[class_x] = np.add(np.dot(A, B) * W[idx], sigma[class_x])
-                Wi += W[idx]
-        sigma[class_x] = np.divide(sigma[class_x], [Wi])
+    for jdx, class_x in enumerate(classes):
+        idx = np.where(labels == class_x)
+        xlc, wlc = X[idx,:], W[idx,:]
+        product = np.transpose(xlc - mu[class_x]) * (xlc - mu[class_x]) * wlc
+        sigma[jdx] = np.diag(np.diag(product.sum(1))) / np.sum(wlc)
     # pp.pprint(sigma)
-
     # ==========================
 
     return mu, sigma
@@ -110,22 +99,13 @@ def classifyBayes(X, prior, mu, sigma):
     logProb = np.zeros((Nclasses, Npts))
     # TODO: fill in the code to compute the log posterior logProb!
     # ==========================
-
     for class_x in range(Nclasses):
-        logProb[class_x] = (-0.5) * np.log(np.linalg.det(sigma[class_x]))
-        # middle_a = np.subtract(X, mu[class_x])
-        x = np.array(
-            [0.5 * np.subtract(x, mu[class_x]).dot(         \
-                np.linalg.pinv(sigma[class_x]).dot(         \
-                np.transpose(np.subtract(x, mu[class_x])))) \
-                for x in X
-            ]
-        )
-        logProb[class_x] = logProb[class_x] - x + np.log(prior[class_x])
-
+        logProb[class_x] = \
+            -0.5 * np.log(np.linalg.det(sigma[class_x])) -                  \
+            0.5 * np.diag(np.linalg.pinv(sigma[class_x])).reshape(1,-1).dot(      \
+            np.transpose((X - mu[class_x]) * (X - mu[class_x]))) +   \
+            np.log(prior[class_x])
     # ==========================
-    # pp.pprint(logProb)
-
     # one possible way of finding max a-posteriori once
     # you have computed the log posterior
     h = np.argmax(logProb, axis=0)
@@ -158,13 +138,13 @@ class BayesClassifier(object):
 
 
 # lab = np.array([1,1,1,1,1,0,0,0,0,0])
-X, labels = genBlobs(centers=5)
-mu, sigma = mlParams(X,labels)
+# X, labels = genBlobs(centers=5)
+# mu, sigma = mlParams(X,labels)
 # plotGaussian(X,labels,mu,sigma)
-prior = computePrior(labels)
-classifyBayes(X, prior, mu, sigma)
-base_classifier = BayesClassifier()
-new_classifier = base_classifier.trainClassifier(X, labels)
+# prior = computePrior(labels)
+# classifyBayes(X, prior, mu, sigma)
+# base_classifier = BayesClassifier()
+# new_classifier = base_classifier.trainClassifier(X, labels)
 
 
 # Call the `testClassifier` and `plotBoundary` functions for this part.
@@ -208,12 +188,19 @@ def trainBoost(base_classifier, X, labels, T=10):
 
         # do classification for each point
         vote = classifiers[-1].classify(X)
-        pp.pprint("VOTES: ", vote)
 
         # TODO: Fill in the rest, construct the alphas etc.
         # ==========================
-
-        # alphas.append(alpha) # you will need to append the new alpha
+        epsilon = np.sum(np.transpose(wCur) * (1. - np.equal(vote, labels)))
+        if epsilon > 0.5:
+            break
+        if epsilon == 0.0:
+            epsilon = np.amin(wCur) / 10000
+        alpha = 0.5 * ((np.log(1.-epsilon)) - np.log(epsilon))
+        w_true = (np.transpose(wCur) * np.equal(vote, labels)) * np.exp(-alpha)
+        w_false = (np.transpose(wCur) * (1 - np.equal(vote, labels))) * np.exp(alpha)
+        wCur = np.transpose((w_true + w_false) / np.sum(w_true + w_false))
+        alphas.append(alpha) # you will need to append the new alpha
         # ==========================
 
     return classifiers, alphas
@@ -236,7 +223,10 @@ def classifyBoost(X, classifiers, alphas, Nclasses):
         # TODO: implement classificiation when we have trained several classifiers!
         # here we can do it by filling in the votes vector with weighted votes
         # ==========================
-
+        for class_x in range(Nclasses):
+            for jdx in range(min(Ncomps, len(alphas))):
+                delta_vote = classifiers[jdx].classify(X) == class_x # Idx is a vector with the indices in labels where class_x == labels
+                votes[:,class_x] += delta_vote * alphas[jdx]
         # ==========================
 
         # one way to compute yPred after accumulating the votes
@@ -269,7 +259,7 @@ class BoostClassifier(object):
 # Call the `testClassifier` and `plotBoundary` functions for this part.
 
 
-#testClassifier(BoostClassifier(BayesClassifier(), T=10), dataset='iris',split=0.7)
+testClassifier(BoostClassifier(BayesClassifier(), T=10), dataset='iris',split=0.7)
 
 
 
